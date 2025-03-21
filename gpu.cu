@@ -178,7 +178,9 @@ void simulate_one_step(particle_t* parts, int num_parts, double size) {
     cudaMemcpy(bin_offsets.get() + 1, bin_counts.get(), num_bins * sizeof(int), cudaMemcpyDeviceToDevice);
 
     // Compute forces
-    compute_forces_gpu<<<(grid_size * grid_size + NUM_THREADS - 1) / NUM_THREADS, NUM_THREADS>>>(parts, num_parts, particle_ids.get(), bin_offsets.get(), grid_size);
+    int totalBins = grid_size * grid_size;
+    int binBlocks = (totalBins + NUM_THREADS - 1) / NUM_THREADS;
+    compute_forces_gpu<<<binBlocks, NUM_THREADS>>>(parts, num_parts, particle_ids.get(), bin_offsets.get(), grid_size);
 
     // Move particles
     move_gpu<<<blks, NUM_THREADS>>>(parts, num_parts, size);
